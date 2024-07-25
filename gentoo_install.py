@@ -32,87 +32,11 @@ def setup_partitions():
     if disk_name == "":
         raise Exception("Disk name should not be empty")
 
-    # Start the parted utility
-    parted_process = subprocess.Popen(
-        ['parted', disk_name],
-        stdin=subprocess.PIPE,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
-        text=True,
-        bufsize=1,
-        shell=True
-    )
-    parted_process.stdin.write('mklabel gpt\n')
-    parted_process.stdin.flush()
-    output = parted_process.stdout.readline()
-    if output != '' and parted_process.poll() is not None:
-        print(f"Subprocess output: {output.strip()}")
-        if output.__contains__("Do you want to continue?"):
-            decision = input(output + ": ")
-            parted_process.stdin.write(decision + '\n')
-            parted_process.stdin.flush()
-
-    parted_process.stdin.write('mkpart boot fat32 0% 2GB\n')
-    parted_process.stdin.write('mkpart root btrfs 2GB 100%\n')
-    parted_process.stdin.write('set 1 boot on\n')
-    parted_process.stdin.write('p\n')
-    parted_process.stdin.write('q\n')
-    parted_process.stdin.flush()
-    parted_process.stdin.close()
-    parted_process.stdout.close()
-    parted_process.stderr.close()
-    parted_process.terminate()
-    parted_process.wait()
-
-    # try:
-    #     while True:
-    #         # Read output from the subprocess
-    #         output = parted_process.stdout.readline()
-    #         if output == '' and process.poll() is not None:
-    #             break
-    #         if output:
-    #             print(f"Subprocess output: {output.strip()}")
-    #
-    #         # Send input to the subprocess
-    #         user_input = input("Enter input for subprocess (or type 'exit' to quit): ")
-    #         if user_input.lower() == 'exit':
-    #             break
-    #         process.stdin.write(user_input + '\n')
-    #         process.stdin.flush()
-    #
-    # except KeyboardInterrupt:
-    #     print("Interrupted by user")
-    # finally:
-    #     # Clean up
-    #     process.stdin.close()
-    #     process.stdout.close()
-    #     process.stderr.close()
-    #     process.terminate()
-    #     process.wait()
-    #
-    # # Create a new GPT partition table
-    # output, error = parted_process.communicate('mklabel gpt\n')
-    # if error:
-    #     if error.__contains__("Do you want to continue?"):
-    #         decision = input(error)
-    #         output, error = parted_process.communicate(decision + '\n')
-    #         if error:
-    #             raise Exception(f"Error:\n{error}")
-    #     else:
-    #         raise Exception(f"Error:\n{error}")
-    #
-    # commands = [
-    #     'mkpart boot fat32 0% 2GB',  # Create boot partition
-    #     'mkpart root btrfs 2GB 100%',  # Create root partition
-    #     'set 1 boot on',
-    #     'p',  # Print the partition table
-    #     'q'  # Exit parted
-    # ]
-    # output, error = parted_process.communicate(input='\n'.join(commands) + '\n')
-    #
-    # print("Output:\n", output)
-    # if error:
-    #     raise Exception(f"Error:\n{error}")
+    run(f'parted {disk_name} --script mklabel gpt')
+    run(f'parted {disk_name} --script mkpart boot fat32 0% 2GB')  # Create boot partition
+    run(f'parted {disk_name} --script mkpart root btrfs 2GB 100%')  # Create root partition
+    run(f'parted {disk_name} --script set 1 boot on')
+    run(f'parted {disk_name} --script p')  # Print the partition table
 
     print("Disks layout after partitioning:")
     run("lsblk")
