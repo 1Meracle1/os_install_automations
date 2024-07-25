@@ -57,7 +57,7 @@ def setup_partitions():
             partitions = device["children"]
             if len(partitions) < 2:
                 raise Exception("Should be minimum two partitions available")
-            if partitions[0]["size"] > partitions[1]["size"]:
+            if partitions[0]["size"] < partitions[1]["size"]:
                 boot_partition = "/dev/" + partitions[0]["name"]
                 root_partition = "/dev/" + partitions[1]["name"]
             else:
