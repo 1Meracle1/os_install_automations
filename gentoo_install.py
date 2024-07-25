@@ -28,28 +28,37 @@ def setup_partitions():
     print("Disks layout before partitioning:")
     run("lsblk")
     global disk_name
-    disk_name = input("Specify disk name to partition").strip()
+    disk_name = input("Specify disk name to partition: ").strip()
     if disk_name == "":
         raise Exception("Disk name should not be empty")
 
     # Start the parted utility
     parted_process = subprocess.Popen(
-        ['sudo', 'parted', disk_name],
+        ['parted', disk_name],
         stdin=subprocess.PIPE,
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
         text=True
     )
-    # Define the commands to send to parted
+
+    # Create a new GPT partition table
+    output, error = parted_process.communicate('mklabel gpt\n')
+    if error:
+        if error.__contains__("Do you want to continue?"):
+            decision = input(error)
+            output, error = parted_process.communicate(decision + '\n')
+            if error:
+                raise Exception(f"Error:\n{error}")
+        else:
+            raise Exception(f"Error:\n{error}")
+
     commands = [
-        'mklabel gpt',  # Create a new GPT partition table
         'mkpart boot fat32 0% 2GB',  # Create boot partition
         'mkpart root btrfs 2GB 100%',  # Create root partition
         'set 1 boot on',
         'p',  # Print the partition table
         'q'  # Exit parted
     ]
-    # Send the commands to parted
     output, error = parted_process.communicate(input='\n'.join(commands) + '\n')
 
     print("Output:\n", output)
