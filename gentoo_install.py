@@ -1,4 +1,5 @@
 import os
+import sys
 from subprocess import call
 import subprocess
 import json
@@ -14,12 +15,19 @@ root_partition = ''
 
 
 def run(command, throw_on_failure=False, custom_error_message=""):
-    result = call(command)
-    if result != 0 and throw_on_failure:
-        if custom_error_message != "":
-            raise Exception(f"{custom_error_message}, result: '{result}', command: '{command}'")
+    print(command)
+    result = subprocess.run(command, shell=True, text=True, stdout=subprocess.PIPE,
+                            stderr=subprocess.PIPE)
+    print(result.stdout)
+    # result = call(command)
+    if result.returncode != 0:
+        if throw_on_failure:
+            if custom_error_message != "":
+                raise Exception(f"{custom_error_message}, command: '{command}', result:\n\t'{result.stderr}'")
+            else:
+                raise Exception(f"Failed to run command, command: '{command}', result:\n\t'{result.stderr}'")
         else:
-            raise Exception(f"Failed to run command, result: '{result}', command: '{command}'")
+            print(result.stderr, file=sys.stderr)
 
 
 ########################################################################################################################
@@ -41,12 +49,13 @@ def setup_partitions():
     print("Disks layout after partitioning:")
     run("lsblk")
     global boot_partition, root_partition
-    result = subprocess.run("lsblk --json", shell=True, check=True, text=True, stdout=subprocess.PIPE,
-                            stderr=subprocess.PIPE)
+    result = run("lsblk --json")
     lsblk_output = json.loads(result.stdout)
     for device in lsblk_output["blockdevices"]:
         if "children" in device:
             partitions = device["children"]
+            if len(partitions) < 2:
+                raise Exception("Should be minimum two partitions available")
             if partitions[0]["size"] > partitions[1]["size"]:
                 boot_partition = "/dev/" + partitions[0]["name"]
                 root_partition = "/dev/" + partitions[1]["name"]
