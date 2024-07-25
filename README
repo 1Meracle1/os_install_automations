@@ -1,1 +1,3 @@
 https://github.com/1Meracle1/os_install_automations/archive/refs/heads/main.zip
+
+wget https://github.com/1Meracle1/os_install_automations/archive/refs/heads/main.zip && unzip main.zip && rm -rf main.zip && mv os_install_automations-main/* . && rm -rf os_install_automations-main

@@ -259,6 +259,7 @@ def time_sync_and_stage3_download():
     print('Unpacking the stage3 archive')
     run(f'tar xpvf ./{stage3_archive_file} --xattrs-include="*.*" --numeric-owner')
     run(f'rm -rf ./{stage3_archive_file}')
+    run('ls -alh')
 
 
 ########################################################################################################################
