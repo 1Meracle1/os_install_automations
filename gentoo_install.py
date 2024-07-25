@@ -49,7 +49,8 @@ def setup_partitions():
     print("Disks layout after partitioning:")
     run("lsblk")
     global boot_partition, root_partition
-    result = run("lsblk --json")
+    result = subprocess.run('lsblk --json', shell=True, text=True, stdout=subprocess.PIPE,
+                            stderr=subprocess.PIPE)
     lsblk_output = json.loads(result.stdout)
     for device in lsblk_output["blockdevices"]:
         if "children" in device:
