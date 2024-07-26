@@ -229,9 +229,9 @@ portage_configuration() {
   echo "portage configuration finished"
 }
 
-start_chroot() {
+mount_directories() {
   echo "-----------------------------------------------------------------------------------------------------------"
-  echo "starting chroot"
+  echo "starting folders mounting"
 
   cp /etc/resolv.conf /mnt/gentoo/etc/
   mount --types proc /proc/ /mnt/gentoo/proc
@@ -241,45 +241,6 @@ start_chroot() {
   mount --make-rslave /mnt/gentoo/sys
   mount --make-rslave /mnt/gentoo/dev
   mount --make-slave /mnt/gentoo/run
-  chroot /mnt/gentoo /bin/bash
-  source /etc/profile
-  export PS1="(chroot) ${PS1}"
-
-  echo "chroot-ed to the new environment"
-}
-
-portage_sync_and_configuration_application() {
-  echo "-----------------------------------------------------------------------------------------------------------"
-  echo "starting portage sync and configuration application"
-
-  emerge-webrsync
-  emerge --sync --quiet
-  emerge --config sys-libs/timezone-data
-  locale-gen
-  env-update
-  source /etc/profile
-  export PS1="(chroot) ${PS1}"
-
-  echo "finished portage sync and configuration application"
-}
-
-cpu_flags() {
-  echo "-----------------------------------------------------------------------------------------------------------"
-  echo "starting cpu flags configuration"
-
-  emerge app-portage/cpuid2cpuflags
-  cpuid2cpuflags >> /etc/portage/make.conf
-
-  echo "finished cpu flags configuration"
-}
-
-global_recompilation() {
-  echo "-----------------------------------------------------------------------------------------------------------"
-  echo "starting global recompilation"
-
-  emerge --emptytree -a -1 @installed
-
-  echo "finished global recompilation"
 }
 
 setup_partitions
@@ -291,7 +252,10 @@ locale_and_timezone_configuration
 filesystem_table
 grub_configuration
 portage_configuration
-start_chroot
-portage_sync_and_configuration_application
-cpu_flags
-measure_time global_recompilation
+mount_directories
+
+cp ./post_chroot_install.sh /mnt/gentoo/post_chroot_install.sh
+chroot /mnt/gentoo "$SHELL" -c "
+   chmod +x ./post_chroot_install.sh
+   ./post_chroot_install.sh
+"
