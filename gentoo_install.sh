@@ -79,10 +79,10 @@ time_sync_and_stage3_download(){
 
   wget "$stage3_archive_file"
   wget "$stage3_archive_file".asc
-  gpg --verify "$stage3_archive_file".asc || exit
+  gpg --verify "$stage3_archive_file".asc
   rm -rf "$stage3_archive_file".asc
   mv "$stage3_archive_file" /mnt/gentoo
-  cd /mnt/gentoo || exit
+  cd /mnt/gentoo
   echo "Unpacking the stage3 archive"
   tar xpvf "$stage3_archive_file" --xattrs-include="*.*" --numeric-owner
   rm -rf "$stage3_archive_file"
