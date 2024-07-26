@@ -138,6 +138,8 @@ time_sync_and_stage3_download() {
   gpg --verify "$stage3_archive_file".asc
   rm -rf "$stage3_archive_file".asc
   mv "$stage3_archive_file" /mnt/gentoo
+
+  cp ./post_chroot_install.sh /mnt/gentoo/post_chroot_install.sh
   cd /mnt/gentoo
   echo "Unpacking the stage3 archive"
   tar xpvf "$stage3_archive_file" --xattrs-include="*.*" --numeric-owner
@@ -254,7 +256,13 @@ grub_configuration
 portage_configuration
 mount_directories
 
-cp ./post_chroot_install.sh /mnt/gentoo/post_chroot_install.sh
+ls -alh
+pwd
+read -r -p "Continue? yes/no: " confirmation
+if [ "$confirmation" != "yes" ]; then
+  die "Stopping the script"
+fi
+
 chroot /mnt/gentoo "$SHELL" -c "
    chmod +x ./post_chroot_install.sh
    ./post_chroot_install.sh
