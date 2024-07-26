@@ -7,8 +7,11 @@ boot_partition=""
 root_partition=""
 
 exit_handler() {
-  echo "-----------------------------------------------------------------------------------------------------------"
-  echo "Line $LINENO: '$BASH_COMMAND' returned '$?'"
+  local exit_code=$?
+  if [ $exit_code -ne 0 ]; then
+    echo "-----------------------------------------------------------------------------------------------------------"
+    echo "Line ${BASH_LINENO[0]}: '$BASH_COMMAND' returned '$?'"
+  fi
 }
 trap exit_handler EXIT
 set -e
@@ -24,6 +27,24 @@ print_and_execute() {
     echo "$@"
     "$@"
 }
+
+measure_time() {
+  start_time=$(date +%s)
+  "$@"
+  end_time=$(date +%s)
+  # Calculate the elapsed time in seconds
+  elapsed_time=$((end_time - start_time))
+
+  # Convert the elapsed time to hours, minutes, and seconds
+  hours=$((elapsed_time / 3600))
+  minutes=$(((elapsed_time % 3600) / 60))
+  seconds=$((elapsed_time % 60))
+
+  # Output the elapsed time in hours, minutes, and seconds
+  printf "Time taken: %02d:%02d:%02d\n" $hours $minutes $seconds
+}
+
+###################################################################################################################
 
 setup_partitions() {
   echo "-----------------------------------------------------------------------------------------------------------"
@@ -104,7 +125,7 @@ mounting_and_subvolume_creation() {
   echo "mounting and subvolume creation finished"
 }
 
-time_sync_and_stage3_download(){
+time_sync_and_stage3_download() {
   echo "-----------------------------------------------------------------------------------------------------------"
   echo "starting time sync"
   chronyd -q
@@ -121,13 +142,154 @@ time_sync_and_stage3_download(){
   echo "Unpacking the stage3 archive"
   tar xpvf "$stage3_archive_file" --xattrs-include="*.*" --numeric-owner
   rm -rf "$stage3_archive_file"
+  echo "Stage3 archive unpacked:"
   ls -alh
 
   echo "stage3 download finished"
 }
 
+locale_and_timezone_configuration() {
+  echo "-----------------------------------------------------------------------------------------------------------"
+  echo "starting locale and timezone configuration"
+
+  echo "en_US ISO-8859-1" >> ./etc/locale.gen
+  echo "en_US.UTF-8 UTF-8" >> ./etc/locale.gen
+  echo "LANG=\"en_US.UTF-8\"" >> ./etc/locale.conf
+  echo "LC_COLLATE=\"C.UTF-8\"" >> ./etc/locale.conf
+
+  echo "Europe/Warsaw" > ./etc/timezone
+
+  echo "locale and timezone configuration finished"
+}
+
+filesystem_table() {
+  echo "-----------------------------------------------------------------------------------------------------------"
+  echo "starting filesystem table configuration"
+
+  boot_partition_uuid=$(blkid "$boot_partition" | grep -o 'UUID="[^"]*"' | head -n 1 | awk -F'"' '{print $2}')
+  {
+    echo "# <fs>                      <mountpoint>  <type>  <opts>                                                                   <dump>  <pass>"
+    echo "LABEL=BTROOT                /             btrfs   default,noatime,compress=lzo,autodefrag,discard=async,subvol=activeroot  0       0"
+    echo "LABEL=BTROOT                /home         btrfs   default,noatime,compress=lzo,autodefrag,discard=async,subvol=home        0       0"
+    echo "UUID=$boot_partition_uuid   /boot         vfat    umask=077                                                                0       1"
+    echo "UUID=$boot_partition_uuid   /efi          vfat    umask=077                                                                0       1"
+  } >> ./etc/fstab
+
+  echo "filesystem table configuration finished"
+}
+
+grub_configuration() {
+  echo "-----------------------------------------------------------------------------------------------------------"
+  echo "starting grub configuration"
+
+  root_partition_uuid=$(blkid "$root_partition" | grep -o 'UUID="[^"]*"' | head -n 1 | awk -F'"' '{print $2}')
+  {
+    echo "GRUB_DISABLE_LINUX_PARTUUID=false"
+    echo "GRUB_DISTRIBUTOR=\"Gentoo\""
+    echo "GRUB_TIMEOUT=5"
+    echo "GRUB_ENABLE_CRYPTODISK=y"
+    echo "GRUB_CMDLINE_LINUX_DEFAULT=\"crypt_root=UUID=$root_partition_uuid quiet\""
+  } >> ./etc/default/grub
+
+  echo "finished grub configuration"
+}
+
+portage_configuration() {
+  echo "-----------------------------------------------------------------------------------------------------------"
+  echo "starting portage configuration"
+
+  rm -rf ./etc/portage/package.use
+  rm -rf ./etc/portage/package.license
+  rm -rf ./etc/portage/package.accept_keywords
+  mkdir ./etc/portage/repos.conf
+  cp ./usr/share/portage/config/repos.conf ./etc/portage/repos.conf/gentoo.conf
+  wget https://github.com/libreisaac/portage-config/archive/refs/heads/main.zip
+  unzip ./main.zip
+  rm -rf ./main.zip
+  ls -a ./portage-config-main
+
+  echo "It is time to edit portage configuration files and change anything that has to be changed"
+  echo "Look for MAKEOPTS, VIDEO_CARDS in make.conf"
+  echo "Hop to other terminal by pressing Alt+Right(arrow key) and check files residing in '$(pwd)/portage-config-main'"
+  echo "Confirm or discard(not recommended) script execution after that step finished"
+  read -r -p "yes/no: " confirmation
+  if [ "$confirmation" != "yes" ]; then
+    die "Stopping the script"
+  fi
+
+  mv ./portage-config-main/* ./etc/portage
+  rm -rf ./portage-config-main
+  mkdir ./etc/portage/env
+  mv ./etc/portage/no-lto ./etc/portage/env
+
+  mirrorselect -i -o >> ./etc/portage/make.conf
+
+  echo "portage configuration finished"
+}
+
+chroot() {
+  echo "-----------------------------------------------------------------------------------------------------------"
+  echo "starting chroot"
+
+  cp /etc/resolv.conf /mnt/gentoo/etc/
+  mount --types proc /proc/ /mnt/gentoo/proc
+  mount --rbind /sys/ /mnt/gentoo/sys
+  mount --rbind /dev/ /mnt/gentoo/dev
+  mount --bind /run/ /mnt/gentoo/run
+  mount --make-rslave /mnt/gentoo/sys
+  mount --make-rslave /mnt/gentoo/dev
+  mount --make-slave /mnt/gentoo/run
+  chroot /mnt/gentoo /bin/bash
+  source /etc/profile
+  export PS1="(chroot) ${PS1}"
+
+  echo "chroot-ed to the new environment"
+}
+
+portage_sync_and_configuration_application() {
+  echo "-----------------------------------------------------------------------------------------------------------"
+  echo "starting portage sync and configuration application"
+
+  emerge-webrsync
+  emerge --sync --quiet
+  emerge --config sys-libs/timezone-data
+  locale-gen
+  env-update
+  source /etc/profile
+  export PS1="(chroot) ${PS1}"
+
+  echo "finished portage sync and configuration application"
+}
+
+cpu_flags() {
+  echo "-----------------------------------------------------------------------------------------------------------"
+  echo "starting cpu flags configuration"
+
+  emerge app-portage/cpuid2cpuflags
+  cpuid2cpuflags >> /etc/portage/make.conf
+
+  echo "finished cpu flags configuration"
+}
+
+global_recompilation() {
+  echo "-----------------------------------------------------------------------------------------------------------"
+  echo "starting global recompilation"
+
+  emerge --emptytree -a -1 @installed
+
+  echo "finished global recompilation"
+}
+
 setup_partitions
-root_encryption
+measure_time root_encryption
 filesystem_creation
 mounting_and_subvolume_creation
 time_sync_and_stage3_download
+locale_and_timezone_configuration
+filesystem_table
+grub_configuration
+portage_configuration
+chroot
+portage_sync_and_configuration_application
+cpu_flags
+measure_time global_recompilation
