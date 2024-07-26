@@ -1,6 +1,7 @@
 #!/bin/bash
 
-stage3_archive_file="https://distfiles.gentoo.org/releases/amd64/autobuilds/20240721T164902Z/stage3-amd64-hardened-openrc-20240721T164902Z.tar.xz"
+stage3_base_url="https://distfiles.gentoo.org/releases/amd64/autobuilds/20240721T164902Z"
+stage3_archive_file="stage3-amd64-hardened-openrc-20240721T164902Z.tar.xz"
 disk_name=""
 boot_partition=""
 root_partition=""
@@ -90,8 +91,8 @@ time_sync_and_stage3_download(){
   echo "starting time sync and stage3 download"
   chronyd -q
 
-  wget "$stage3_archive_file"
-  wget "$stage3_archive_file".asc
+  wget "$stage3_base_url/$stage3_archive_file"
+  wget "$stage3_base_url/$stage3_archive_file".asc
   gpg --verify "$stage3_archive_file".asc
   rm -rf "$stage3_archive_file".asc
   mv "$stage3_archive_file" /mnt/gentoo
