@@ -60,7 +60,8 @@ cpu_flags() {
   echo "starting cpu flags configuration"
 
   emerge app-portage/cpuid2cpuflags
-  cpuid2cpuflags >> /etc/portage/make.conf
+  echo "" >> /etc/portage/make.conf
+  cpuid2cpuflags | sed 's/: /=/g' >> /etc/portage/make.conf
 
   echo "finished cpu flags configuration"
 }
