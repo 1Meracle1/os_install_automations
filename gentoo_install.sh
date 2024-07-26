@@ -7,18 +7,26 @@ boot_partition=""
 root_partition=""
 
 exit_handler() {
+  echo "-----------------------------------------------------------------------------------------------------------"
   echo "Line $LINENO: '$BASH_COMMAND' returned '$?'"
 }
 trap exit_handler EXIT
 set -e
 
 die() {
-    local message="$1"
-    echo "Error at (${BASH_LINENO[0]}): $message" >&2
-    exit 1
+  echo "-----------------------------------------------------------------------------------------------------------"
+  local message="$1"
+  echo "Error at (${BASH_LINENO[0]}): $message" >&2
+  exit 1
+}
+
+print_and_execute() {
+    echo "$@"
+    "$@"
 }
 
 setup_partitions() {
+  echo "-----------------------------------------------------------------------------------------------------------"
   echo "Setting up partitions"
   echo "Disks layout before partitioning:"
   lsblk
@@ -58,21 +66,29 @@ setup_partitions() {
 }
 
 root_encryption() {
+  echo "-----------------------------------------------------------------------------------------------------------"
   echo "starting root encryption"
-  cryptsetup luksFormat -s256 -c aes-xts-plain64 "$root_partition"
-  cryptsetup luksOpen "$root_partition" cryptroot
+
+  print_and_execute cryptsetup luksFormat -s256 -c aes-xts-plain64 "$root_partition"
+  print_and_execute cryptsetup luksOpen "$root_partition" cryptroot
+
   echo "root encryption finished"
 }
 
 filesystem_creation() {
+  echo "-----------------------------------------------------------------------------------------------------------"
   echo "starting filesystem creation"
+
   mkfs.vfat -F 32 "$boot_partition"
   mkfs.btrfs -L BTROOT /dev/mapper/cryptroot
+
   echo "filesystem creation finished"
 }
 
 mounting_and_subvolume_creation() {
+  echo "-----------------------------------------------------------------------------------------------------------"
   echo "starting mounting and subvolume creation"
+
   mkdir /mnt/root
   mount -t btrfs -o defaults,noatime,compress=lzo,autodefrag /dev/mapper/cryptroot /mnt/root
   btrfs subvolume create /mnt/root/activeroot
@@ -84,15 +100,20 @@ mounting_and_subvolume_creation() {
   mkdir /mnt/gentoo/efi
   mount "$boot_partition" /mnt/gentoo/boot
   mount "$boot_partition" /mnt/gentoo/efi
+
   echo "mounting and subvolume creation finished"
 }
 
 time_sync_and_stage3_download(){
-  echo "starting time sync and stage3 download"
+  echo "-----------------------------------------------------------------------------------------------------------"
+  echo "starting time sync"
   chronyd -q
-
+  echo "time sync finished"
+  echo "-----------------------------------------------------------------------------------------------------------"
+  echo "starting stage3 download"
   wget "$stage3_base_url/$stage3_archive_file"
   wget "$stage3_base_url/$stage3_archive_file".asc
+  gpg --import /usr/share/openpgp-keys/gentoo-release.asc
   gpg --verify "$stage3_archive_file".asc
   rm -rf "$stage3_archive_file".asc
   mv "$stage3_archive_file" /mnt/gentoo
@@ -101,7 +122,8 @@ time_sync_and_stage3_download(){
   tar xpvf "$stage3_archive_file" --xattrs-include="*.*" --numeric-owner
   rm -rf "$stage3_archive_file"
   ls -alh
-  echo "time sync and stage3 download finished"
+
+  echo "stage3 download finished"
 }
 
 setup_partitions
