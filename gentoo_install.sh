@@ -140,6 +140,7 @@ time_sync_and_stage3_download() {
   mv "$stage3_archive_file" /mnt/gentoo
 
   cp ./post_chroot_install.sh /mnt/gentoo/post_chroot_install.sh
+  cp ./packages_list.txt /mnt/gentoo/packages_list.txt
   cd /mnt/gentoo
   echo "Unpacking the stage3 archive"
   tar xpvf "$stage3_archive_file" --xattrs-include="*.*" --numeric-owner
