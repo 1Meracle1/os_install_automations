@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -e
+
 stage3_archive_file="https://distfiles.gentoo.org/releases/amd64/autobuilds/20240721T164902Z/stage3-amd64-hardened-openrc-20240721T164902Z.tar.xz"
 disk_name=""
 boot_partition=""
@@ -44,8 +46,8 @@ setup_partitions() {
   if [ "$(echo "$partitions" | wc -l )" -lt 2 ]; then
     die "There have to be two partitions in place"
   fi
-  boot_partition=$(echo "$partitions" | sed -n '1p')
-  root_partition=$(echo "$partitions" | sed -n '2p')
+  boot_partition="/dev/$(echo "$partitions" | sed -n '1p')"
+  root_partition="/dev/$(echo "$partitions" | sed -n '2p')"
 }
 
 root_encryption() {
