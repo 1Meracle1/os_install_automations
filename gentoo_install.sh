@@ -35,7 +35,9 @@ setup_partitions() {
   echo "Disks layout after partitioning:"
   lsblk
 
-  partitions=$(lsblk -n -o NAME | grep "$(basename "$disk_name")" | tail -n 2)
+  basename_drive="$(basename "$disk_name")"
+  partitions=$(lsblk --json | grep -oP '"name":"'"$basename_drive"'".*?"children":\[{.*?\]' | grep -oP '"name":"[^"]+"' | grep -v '"name":"'"$basename_drive"'"' | sed 's/"name":"//g' | sed 's/"//g')
+#  partitions=$(lsblk -n -o NAME | grep "$(basename "$disk_name")" | tail -n 2)
   if [ "$(echo "$partitions" | wc -l )" -lt 2 ]; then
     die "There have to be two partitions in place"
   fi
