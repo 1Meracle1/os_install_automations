@@ -206,7 +206,9 @@ portage_configuration() {
   wget https://github.com/libreisaac/portage-config/archive/refs/heads/main.zip
   unzip ./main.zip
   rm -rf ./main.zip
-  ls -a ./portage-config-main
+  echo ""
+  ls -alh ./portage-config-main
+  echo ""
 
   echo "It is time to edit portage configuration files and change anything that has to be changed"
   echo "Look for MAKEOPTS, VIDEO_CARDS in make.conf"
@@ -227,7 +229,7 @@ portage_configuration() {
   echo "portage configuration finished"
 }
 
-chroot() {
+start_chroot() {
   echo "-----------------------------------------------------------------------------------------------------------"
   echo "starting chroot"
 
@@ -282,14 +284,14 @@ global_recompilation() {
 
 setup_partitions
 measure_time root_encryption
-filesystem_creation
+measure_time filesystem_creation
 mounting_and_subvolume_creation
-time_sync_and_stage3_download
+measure_time time_sync_and_stage3_download
 locale_and_timezone_configuration
 filesystem_table
 grub_configuration
 portage_configuration
-chroot
+start_chroot
 portage_sync_and_configuration_application
 cpu_flags
 measure_time global_recompilation
