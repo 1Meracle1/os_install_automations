@@ -1,12 +1,15 @@
 #!/bin/bash
 
-exec 3>&1 1>>debug.log 2>&1
-set -e -x
-
 stage3_archive_file="https://distfiles.gentoo.org/releases/amd64/autobuilds/20240721T164902Z/stage3-amd64-hardened-openrc-20240721T164902Z.tar.xz"
 disk_name=""
 boot_partition=""
 root_partition=""
+
+exit_handler() {
+  echo "Line $LINENO: '$BASH_COMMAND' returned '$?'"
+}
+trap exit_handler EXIT
+set -e
 
 die() {
     local message="$1"
@@ -104,3 +107,4 @@ setup_partitions
 root_encryption
 filesystem_creation
 mounting_and_subvolume_creation
+time_sync_and_stage3_download
