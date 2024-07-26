@@ -35,9 +35,12 @@ setup_partitions() {
   echo "Disks layout after partitioning:"
   lsblk
 
-  basename_drive="$(basename "$disk_name")"
-  partitions=$(lsblk --json | grep -oP '"name":"'"$basename_drive"'".*?"children":\[{.*?\]' | grep -oP '"name":"[^"]+"' | grep -v '"name":"'"$basename_drive"'"' | sed 's/"name":"//g' | sed 's/"//g')
-#  partitions=$(lsblk -n -o NAME | grep "$(basename "$disk_name")" | tail -n 2)
+  wget "https://github.com/jqlang/jq/releases/download/jq-1.7.1/jq-linux-amd64"
+  mv ./jq-linux-amd64 jq
+  chmod 777 ./jq
+  partitions=$(lsblk --json | ./jq -r --arg base_drive "$(basename "$disk_name")" '
+    .blockdevices[] | select(.name == $base_drive) | .children[]? | .name
+  ')
   if [ "$(echo "$partitions" | wc -l )" -lt 2 ]; then
     die "There have to be two partitions in place"
   fi
