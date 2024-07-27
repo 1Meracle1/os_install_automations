@@ -254,11 +254,7 @@ mount_directories
 
 ls -alh
 pwd
-read -r -p "Continue? yes/no: " confirmation
-if [ "$confirmation" != "yes" ]; then
-  die "Stopping the script"
-fi
-
+read -r -p "Preparation step finished. Proceed to chroot?"
 chroot /mnt/gentoo "$SHELL" -c "
    chmod +x ./post_chroot_install.sh
    ./post_chroot_install.sh
