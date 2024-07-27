@@ -210,12 +210,9 @@ portage_configuration() {
 
   echo "It is time to edit portage configuration files and change anything that has to be changed"
   echo "Look for MAKEOPTS, VIDEO_CARDS in make.conf"
-  echo "Hop to other terminal by pressing Alt+Right(arrow key) and check files residing in '.$(pwd)/portage/'"
+  echo "Hop to other terminal by pressing Alt+Right(arrow key) and check files residing in '$(pwd)/portage/'"
   echo "Confirm or discard(not recommended) script execution after that step finished"
-  read -r -p "yes/no: " confirmation
-  if [ "$confirmation" != "yes" ]; then
-    die "Stopping the script"
-  fi
+  read -r -p "Hit enter once done "
 
   mv ./portage/* ./etc/portage
   rm -rf ./portage
