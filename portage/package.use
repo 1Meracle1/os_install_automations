@@ -1,0 +1,41 @@
+# System packages
+app-shells/bash-completion eselect
+sys-apps/systemd-utils tmpfiles
+sys-auth/seatd builtin server
+sys-boot/grub device-mapper
+app-crypt/pinentry caps
+app-portage/gemato gpg
+sys-apps/openrc bash
+dev-libs/openssl asm
+dev-lang/python ssl
+dev-libs/nettle gmp
+
+# Kernel packages
+## sys-kernel/linux-firmware redistributable
+sys-kernel/installkernel grub
+sys-kernel/genkernel firmware
+
+# Rust language
+dev-lang/rust nightly rust-analyzer rust-src rustfmt
+net-misc/curl http2 ssl
+
+# Core packages
+app-crypt/gnupg smartcard ssl tools
+sys-block/parted device-mapper
+dev-vcs/git gpg highlight curl
+
+# Networking packages
+net-misc/networkmanager nss iptables tools connection-sharing dhcpcd
+net-dns/dnsmasq dhcp
+
+# App alternatives
+app-alternatives/ninja reference
+app-alternatives/yacc reference
+app-alternatives/bzip2 lbzip2
+app-alternatives/lex reflex
+app-alternatives/gzip pigz
+app-alternatives/cpio gnu
+app-alternatives/awk gawk
+app-alternatives/tar gnu
+app-alternatives/sh bash
+app-alternatives/bc gnu

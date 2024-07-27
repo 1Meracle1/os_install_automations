@@ -206,24 +206,24 @@ portage_configuration() {
   rm -rf ./etc/portage/package.accept_keywords
   mkdir ./etc/portage/repos.conf
   cp ./usr/share/portage/config/repos.conf ./etc/portage/repos.conf/gentoo.conf
-  wget https://github.com/libreisaac/portage-config/archive/refs/heads/main.zip
-  unzip ./main.zip
-  rm -rf ./main.zip
-  echo ""
-  ls -alh ./portage-config-main
-  echo ""
+#  wget https://github.com/libreisaac/portage-config/archive/refs/heads/main.zip
+#  unzip ./main.zip
+#  rm -rf ./main.zip
+#  echo ""
+#  ls -alh ./portage-config-main
+#  echo ""
 
   echo "It is time to edit portage configuration files and change anything that has to be changed"
   echo "Look for MAKEOPTS, VIDEO_CARDS in make.conf"
-  echo "Hop to other terminal by pressing Alt+Right(arrow key) and check files residing in '$(pwd)/portage-config-main'"
+  echo "Hop to other terminal by pressing Alt+Right(arrow key) and check files residing in '$(pwd)/portage'"
   echo "Confirm or discard(not recommended) script execution after that step finished"
   read -r -p "yes/no: " confirmation
   if [ "$confirmation" != "yes" ]; then
     die "Stopping the script"
   fi
 
-  mv ./portage-config-main/* ./etc/portage
-  rm -rf ./portage-config-main
+  mv ./portage/* ./etc/portage
+  rm -rf ./portage
   mkdir ./etc/portage/env
   mv ./etc/portage/no-lto ./etc/portage/env
 

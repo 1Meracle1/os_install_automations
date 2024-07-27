@@ -70,13 +70,13 @@ global_recompilation() {
   echo "-----------------------------------------------------------------------------------------------------------"
   echo "starting global recompilation"
 
-  emerge --emptytree -a -1 @installed
+  emerge --emptytree -a -1 @installed || true
 
   echo "finished global recompilation"
 }
 
 rust_install() {
-  emerge dev-lang/rus
+  emerge dev-lang/rust
   read -r -p "Add 'system-bootstrap flag to dev-lang/rust at /etc/portage/package.use' to proceed"
 }
 
@@ -109,6 +109,7 @@ greetd_configuration() {
   # start greetd on boot
   cp /etc/inittab /etc/inittab.bak
   sed -i 's/.*respawn:\/sbin\/agetty.*/c1:12345:respawn:\/bin\/greetd/' /etc/inittab
+  read -r -p "Review content of /etc/inittab"
 }
 
 service_configuration() {
@@ -129,7 +130,7 @@ user_management() {
 
   read -r -p "Enter your username: " username
   useradd "$username"
-  echo "Enter password for your user"
+  echo "Enter password for user $username"
   passwd "$username"
   usermod "$username" -aG users
   usermod "$username" -aG wheel
@@ -166,9 +167,14 @@ source /etc/profile
 export PS1="(chroot) ${PS1}"
 portage_sync_and_configuration_application
 cpu_flags
+
 measure_time global_recompilation
+read -r -p "Global recompilation finished, proceed?"
 measure_time rust_install
+read -r -p "Installed rust, proceed?"
 measure_time emerge_base_packages
+read -r -p "Emerged base packages, proceed?"
+
 doas_configuration
 greetd_configuration
 service_configuration
