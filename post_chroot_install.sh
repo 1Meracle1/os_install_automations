@@ -108,8 +108,9 @@ greetd_configuration() {
   usermod greetd -aG seat
   # start greetd on boot
   cp /etc/inittab /etc/inittab.bak
+  read -r -p "Review content of /etc/inittab before"
   sed -i 's/.*respawn:\/sbin\/agetty.*/c1:12345:respawn:\/bin\/greetd/' /etc/inittab
-  read -r -p "Review content of /etc/inittab"
+  read -r -p "Review content of /etc/inittab after"
 }
 
 service_configuration() {

@@ -141,6 +141,7 @@ time_sync_and_stage3_download() {
 
   cp ./post_chroot_install.sh /mnt/gentoo/post_chroot_install.sh
   cp ./packages_list.txt /mnt/gentoo/packages_list.txt
+  cp -r ./portage /mnt/gentoo/portage
   cd /mnt/gentoo
   echo "Unpacking the stage3 archive"
   tar xpvf "$stage3_archive_file" --xattrs-include="*.*" --numeric-owner
@@ -153,13 +154,11 @@ time_sync_and_stage3_download() {
 
 locale_and_timezone_configuration() {
   echo "-----------------------------------------------------------------------------------------------------------"
-  echo "starting locale and timezone configuration"
 
   echo "en_US ISO-8859-1" >> ./etc/locale.gen
   echo "en_US.UTF-8 UTF-8" >> ./etc/locale.gen
   echo "LANG=\"en_US.UTF-8\"" >> ./etc/locale.conf
   echo "LC_COLLATE=\"C.UTF-8\"" >> ./etc/locale.conf
-
   echo "Europe/Warsaw" > ./etc/timezone
 
   echo "locale and timezone configuration finished"
@@ -167,8 +166,6 @@ locale_and_timezone_configuration() {
 
 filesystem_table() {
   echo "-----------------------------------------------------------------------------------------------------------"
-  echo "starting filesystem table configuration"
-
   boot_partition_uuid=$(blkid "$boot_partition" | grep -o 'UUID="[^"]*"' | head -n 1 | awk -F'"' '{print $2}')
   {
     echo "# <fs>                      <mountpoint>  <type>  <opts>                                                                   <dump>  <pass>"
@@ -183,8 +180,6 @@ filesystem_table() {
 
 grub_configuration() {
   echo "-----------------------------------------------------------------------------------------------------------"
-  echo "starting grub configuration"
-
   root_partition_uuid=$(blkid "$root_partition" | grep -o 'UUID="[^"]*"' | head -n 1 | awk -F'"' '{print $2}')
   {
     echo "GRUB_DISABLE_LINUX_PARTUUID=false"
@@ -215,7 +210,7 @@ portage_configuration() {
 
   echo "It is time to edit portage configuration files and change anything that has to be changed"
   echo "Look for MAKEOPTS, VIDEO_CARDS in make.conf"
-  echo "Hop to other terminal by pressing Alt+Right(arrow key) and check files residing in '$(pwd)/portage'"
+  echo "Hop to other terminal by pressing Alt+Right(arrow key) and check files residing in '.$(pwd)/portage/'"
   echo "Confirm or discard(not recommended) script execution after that step finished"
   read -r -p "yes/no: " confirmation
   if [ "$confirmation" != "yes" ]; then
