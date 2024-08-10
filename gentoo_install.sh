@@ -1,7 +1,7 @@
 #!/bin/bash
 
-stage3_base_url="https://distfiles.gentoo.org/releases/amd64/autobuilds/20240721T164902Z"
-stage3_archive_file="stage3-amd64-hardened-openrc-20240721T164902Z.tar.xz"
+stage3_base_url="https://distfiles.gentoo.org/releases/amd64/autobuilds/20240804T163558Z"
+stage3_archive_file="stage3-amd64-hardened-openrc-20240804T163558Z.tar.xz"
 disk_name=""
 boot_partition=""
 root_partition=""
