@@ -168,8 +168,8 @@ cpu_flags
 
 measure_time global_recompilation
 read -r -p "Global recompilation finished, proceed?"
-#measure_time rust_install
-#read -r -p "Installed rust, proceed?"
+measure_time rust_install
+read -r -p "Installed rust, proceed?"
 measure_time emerge_base_packages
 read -r -p "Emerged base packages, proceed?"
 

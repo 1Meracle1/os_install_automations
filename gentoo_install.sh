@@ -218,6 +218,7 @@ portage_configuration() {
   rm -rf ./portage
   mkdir ./etc/portage/env
   mv ./etc/portage/no-lto ./etc/portage/env
+  mv ./etc/portage/no-lto-o2 ./etc/portage/env
 
   mirrorselect -i -o >> ./etc/portage/make.conf
 
