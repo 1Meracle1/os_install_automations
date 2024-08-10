@@ -254,5 +254,5 @@ pwd
 read -r -p "Preparation step finished. Proceed to chroot?"
 chroot /mnt/gentoo "$SHELL" -c "
    chmod +x ./post_chroot_install.sh
-   ./post_chroot_install.sh
+   ./post_chroot_install.sh 2>&1 | tee -a post_install_log.log
 "
