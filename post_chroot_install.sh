@@ -81,12 +81,9 @@ rust_install() {
 }
 
 emerge_base_packages() {
-  emerge_command=""
   while IFS= read -r line; do
-      # Append the line to the final command with a space and backslash
-      emerge_command+="$line "
+      emerge "$line"
   done < "packages_list.txt"
-  emerge --ask "$emerge_command"
 }
 
 doas_configuration() {
