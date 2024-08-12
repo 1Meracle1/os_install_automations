@@ -75,15 +75,16 @@ global_recompilation() {
   echo "finished global recompilation"
 }
 
-rust_install() {
-  emerge dev-lang/rust
-  read -r -p "Add 'system-bootstrap flag to dev-lang/rust at /etc/portage/package.use' to proceed"
-}
+#rust_install() {
+#  emerge dev-lang/rust
+#  read -r -p "Add 'system-bootstrap flag to dev-lang/rust at /etc/portage/package.use' to proceed"
+#}
 
 emerge_base_packages() {
   while IFS= read -r line; do
       emerge "$line"
   done < "packages_list.txt"
+  echo "emerge_base_packages finished"
 }
 
 doas_configuration() {
@@ -92,23 +93,23 @@ doas_configuration() {
   chmod -c 0400 /etc/doas.conf
 }
 
-greetd_configuration() {
-  {
-    echo "[terminal]"
-    echo "vt = current"
-    echo "[default_session]"
-    echo "tuigreet --cmd /bin/bash -t"
-    echo "user = \"greetd\""
-  } > /etc/greetd/config.toml
-  usermod greetd -aG video
-  usermod greetd -aG input
-  usermod greetd -aG seat
-  # start greetd on boot
-  cp /etc/inittab /etc/inittab.bak
-  read -r -p "Review content of /etc/inittab before"
-  sed -i 's/.*respawn:\/sbin\/agetty.*/c1:12345:respawn:\/bin\/greetd/' /etc/inittab
-  read -r -p "Review content of /etc/inittab after"
-}
+#greetd_configuration() {
+#  {
+#    echo "[terminal]"
+#    echo "vt = current"
+#    echo "[default_session]"
+#    echo "tuigreet --cmd /bin/bash -t"
+#    echo "user = \"greetd\""
+#  } > /etc/greetd/config.toml
+#  usermod greetd -aG video
+#  usermod greetd -aG input
+#  usermod greetd -aG seat
+#  # start greetd on boot
+#  cp /etc/inittab /etc/inittab.bak
+#  read -r -p "Review content of /etc/inittab before"
+#  sed -i 's/.*respawn:\/sbin\/agetty.*/c1:12345:respawn:\/bin\/greetd/' /etc/inittab
+#  read -r -p "Review content of /etc/inittab after"
+#}
 
 service_configuration() {
   rc-update add seatd boot
@@ -152,7 +153,7 @@ kernel_configuration() {
 }
 
 grub_installation() {
-  grub-install --target=x86_64-efi --efi-directory /boot --removable --recheck
+  grub-install --target=x86_64-efi --efi-directory /boot --removable --recheck --force
   grub-mkconfig -o /boot/grub/grub.cfg
   echo "Installation completed"
   read -r -p "Restart now? Yes/No: " decision
@@ -167,14 +168,12 @@ portage_sync_and_configuration_application
 cpu_flags
 
 measure_time global_recompilation
-read -r -p "Global recompilation finished, proceed?"
-measure_time rust_install
-read -r -p "Installed rust, proceed?"
+#measure_time rust_install
+#read -r -p "Installed rust, proceed?"
 measure_time emerge_base_packages
-read -r -p "Emerged base packages, proceed?"
 
 doas_configuration
-greetd_configuration
+#greetd_configuration
 service_configuration
 user_management
 kernel_configuration

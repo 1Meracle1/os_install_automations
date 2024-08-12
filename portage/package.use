@@ -16,7 +16,7 @@ sys-kernel/installkernel grub
 sys-kernel/genkernel firmware
 
 # Rust language
-dev-lang/rust nightly rust-analyzer rust-src rustfmt
+# dev-lang/rust nightly rust-analyzer rust-src rustfmt
 net-misc/curl http2 ssl
 
 # Core packages
